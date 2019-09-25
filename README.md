@@ -23,6 +23,22 @@ define i32 @add(i32 %a, i32 %b) #0 {
 }
 ```
 
+## How wabt(-rs) works
+
+`ScriptParser::from_str` takes wast input e.g. testsuite/i32.wast
+
+`ModuleBinary::into_vec` returns _module_ binary same as `wast2json testsuite/i32.wast -o i32.json` would return in `i32.0.wasm`
+
+_module_ binary comes from `Script::write_binares` which calls to _foreign_ call to [wabt_write_binary_spec_script](https://github.com/pepyakin/wabt-rs/blob/master/wabt-sys/src/lib.rs#L130) 
+
+## How to get module binary for test
+
+```
+wast2json testsuite/i32.wast -o i32.json
+```
+
+Module binary is `i32.0.wasm`
+
 ## How to compile Rust to WebAssembly and get text representation
 
 Install target for WebAssembly 

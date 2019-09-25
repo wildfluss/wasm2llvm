@@ -9,5 +9,6 @@ edition = "2018"
 [dependencies]
 wabt = "0.9.0"
 tempfile = "3.1.0"
+wasmi = "0.5.1"
 # test
 which = "3.0.0"

@@ -1,5 +1,6 @@
 extern crate wabt;
 extern crate tempfile;
+extern crate wasmi;
 
 pub fn wasm2ll(func: &str, _wasm: &[u8]) -> String {
     String::from(format!(r#"
@@ -36,7 +37,34 @@ mod tests {
         while let Some(Command { kind, .. }) = parser.next()? {
             match kind {
                 CommandKind::Module { module, name } => {
-                    let module_binary = module.into_vec();
+                    let buf = module.into_vec();
+
+                    // let mut wasm = File::create("i32.0.wasm")?;
+                    // wasm.write_all(&module_binary);
+                    // wasm.flush();
+
+                    use wasmi::{Module, ModuleInstance, ImportsBuilder, NopExternals, GlobalRef, ExternVal::Func, FuncInstance};
+                    use std::cell::{Ref};
+                    let module = Module::from_buffer(buf).unwrap();
+                    let not_started = ModuleInstance::new(&module, &ImportsBuilder::default())
+                        .expect("Failed to instantiate module")
+                        .run_start(&mut NopExternals)
+                        .expect("Failed to run start function in module");
+                    // let tmp: Ref<Vec<GlobalRef>> = not_started.globals();
+                    // for global in &*tmp {
+                    //     println!("{:?}", global);
+                    // }
+                    match not_started.export_by_name("add") {
+                        None => (),
+                        Some(Func(func_ref)) => {
+                            // here
+                            let fun: &FuncInstance = &*func_ref;
+                            let body = fun.body(); // XXX method `body` is private
+                            // FuncBody::code
+                        },
+                        _ => () 
+                    };
+
                     funcs.insert(String::from("add"), &[0, 97, 115, 109]); // TODO
                 }
                 CommandKind::AssertReturn { action, expected: expected_vec } => {
