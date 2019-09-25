@@ -1,6 +1,7 @@
 extern crate wabt;
 extern crate tempfile;
 extern crate wasmi;
+extern crate parity_wasm;
 
 pub fn wasm2ll(func: &str, _wasm: &[u8]) -> String {
     String::from(format!(r#"
@@ -43,27 +44,50 @@ mod tests {
                     // wasm.write_all(&module_binary);
                     // wasm.flush();
 
-                    use wasmi::{Module, ModuleInstance, ImportsBuilder, NopExternals, GlobalRef, ExternVal::Func, FuncInstance};
-                    use std::cell::{Ref};
-                    let module = Module::from_buffer(buf).unwrap();
-                    let not_started = ModuleInstance::new(&module, &ImportsBuilder::default())
-                        .expect("Failed to instantiate module")
-                        .run_start(&mut NopExternals)
-                        .expect("Failed to run start function in module");
+                    // use wasmi::{Module, ModuleInstance, ImportsBuilder, NopExternals, GlobalRef, ExternVal::Func, FuncInstance, parity_wasm::elements::Instructions};
+                    // use std::cell::{Ref};
+                    // let module = Module::from_buffer(buf).unwrap();
+                    // let not_started = ModuleInstance::new(&module, &ImportsBuilder::default())
+                    //     .expect("Failed to instantiate module")
+                    //     .run_start(&mut NopExternals)
+                    //     .expect("Failed to run start function in module");
+
                     // let tmp: Ref<Vec<GlobalRef>> = not_started.globals();
                     // for global in &*tmp {
                     //     println!("{:?}", global);
                     // }
-                    match not_started.export_by_name("add") {
-                        None => (),
-                        Some(Func(func_ref)) => {
-                            // here
-                            let fun: &FuncInstance = &*func_ref;
-                            let body = fun.body(); // XXX method `body` is private
-                            // FuncBody::code
-                        },
-                        _ => () 
-                    };
+
+                    // match not_started.export_by_name("add") {
+                    //     None => (),
+                    //     Some(Func(func_ref)) => {
+                    //         // here
+                    //         let fun: &FuncInstance = &*func_ref;
+                    //         let body = fun.body().unwrap(); // XXX method `body` is private
+                    //         // found struct `wasmi::isa::Instructions`
+                    //         let code: parity_wasm::elements::Instructions = body.code;
+                    //         for i in code.elements() {
+                    //             println!("ins");
+                    //         }
+                    //     },
+                    //     _ => () 
+                    // };
+
+                    use parity_wasm::elements::{Module, Internal::*};
+                    let module: Module = parity_wasm::deserialize_buffer(&buf).unwrap();
+                    for e in module.export_section().unwrap().entries() {
+                        if e.field() == "add" {
+                            if let Function(function_index) = e.internal() {
+                                // println!("{:?}", index);
+                                let code = &module.code_section().expect("Already checked, impossible").bodies()[*function_index as usize];
+                                println!("code: ");
+	                        for instruction in code.code().elements() {
+		                    println!("{}", instruction);
+	                        }
+
+                                break;
+                            }
+                        }
+                    }
 
                     funcs.insert(String::from("add"), &[0, 97, 115, 109]); // TODO
                 }
