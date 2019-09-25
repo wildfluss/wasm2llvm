@@ -23,6 +23,11 @@ mod tests {
         use std::io::Write;
         use std::process;
         use tempfile::NamedTempFile;
+        use which::which;
+
+        if let Err(_) = which::which("llvm-as") {
+            panic!("No llvm-as");
+        }
         
         let wast = fs::read_to_string("testsuite/i32.wast").unwrap();
         let mut parser: ScriptParser = ScriptParser::from_str(&wast)?;
@@ -62,13 +67,13 @@ define i32 @main() {{
                                 file.flush()?;
                                 
                                 // Convert LLVM IR to bitcode
-                                process::Command::new("llvm-as-8")
+                                process::Command::new("llvm-as")
                                     .arg(file.path())
                                     .output()?; // wait for it to finish
 
                                 let bitcode = format!("{}.bc",file.path().to_string_lossy());
                                 
-                                let status = process::Command::new("lli-8")
+                                let status = process::Command::new("lli")
                                     .arg(&bitcode) // XXX
                                     .status()?;
 
