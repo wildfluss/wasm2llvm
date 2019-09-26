@@ -23,6 +23,15 @@ define i32 @add(i32 %a, i32 %b) #0 {
 }
 ```
 
+## How to run sieve.wat
+
+```
+wat2wasm --enable-tail-call -v sieve.wat  -o sieve.wasm
+wasm-interp --run-all-exports --enable-tail-call --host-print sieve.wasm 
+called host host.print(i32:42) => i32:0
+f() => i32:0
+```
+
 ## How wabt(-rs) works
 
 `ScriptParser::from_str` takes wast input e.g. testsuite/i32.wast
